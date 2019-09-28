@@ -41,6 +41,22 @@ Route::group(['prefix' => config('shopify-app.prefix'), 'middleware' => ['web']]
         'OhMyBrew\ShopifyApp\Controllers\AuthController@index'
     )->name('login');
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | ITP Route
+    |--------------------------------------------------------------------------
+    |
+    | Handles ITP for browsers like Safari.
+    | TODO: Rename routes to match /session.
+    |
+    */
+
+    Route::get(
+        '/session/itp',
+        'OhMyBrew\ShopifyApp\Controllers\AuthController@itp'
+    )->name('session.itp');
+
     /*
     |--------------------------------------------------------------------------
     | Authenticate Method

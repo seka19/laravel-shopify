@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Session;
 use OhMyBrew\ShopifyApp\Exceptions\MissingShopDomainException;
 use OhMyBrew\ShopifyApp\Exceptions\SignatureVerificationException;
@@ -52,6 +53,9 @@ class AuthShop
         // Grab the shop's myshopify domain from query or session
         $shopDomain = $this->getShopDomain($request, $session);
 
+        // Check ITP issues
+        $this->checkITP($shopDomain);
+
         // Get the shop based on domain and update the session service
         $shopModel = Config::get('shopify-app.shop_model');
         $shop = $shopModel::withTrashed()
@@ -71,6 +75,22 @@ class AuthShop
 
         // Everything is fine!
         return true;
+    }
+
+    /**
+     * Handles ITP for browsers like Safari.
+     *
+     * @oaram string $shopDomain The shop's myshopify domain.
+     *
+     * @return void
+     */
+    private function checkITP(string $shopDomain)
+    {
+        // Check if we have our test cookie
+        if (!Cookie::has('laravel_shopify_itp')) {
+            // Cookie not there, redirect
+            Redirect::route('session.itp');
+        }
     }
 
     /**

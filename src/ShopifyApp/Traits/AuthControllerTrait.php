@@ -80,6 +80,19 @@ trait AuthControllerTrait
     }
 
     /**
+     * Handle ITP.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function itp()
+    {
+        if (Request::query('accept')) {
+        }
+
+        return View::make('shopify-app::auth.itp');
+    }
+
+    /**
      * Determines where to redirect after successfull auth.
      *
      * @return string
