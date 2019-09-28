@@ -71,6 +71,7 @@ Route::group(['prefix' => config('shopify-app.prefix'), 'middleware' => ['web']]
         '/authenticate',
         'OhMyBrew\ShopifyApp\Controllers\AuthController@authenticate'
     )
+    ->middleware(['auth.itp'])
     ->name('authenticate');
 
     /*
