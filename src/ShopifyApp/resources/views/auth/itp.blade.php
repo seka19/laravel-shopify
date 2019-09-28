@@ -33,18 +33,19 @@
 
             .title {
                 font-size: 1.5em;
-                margin: 2em auto;
+                margin: 2em auto 0 auto;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 word-break: break-all;
             }
 
-            .subtitle {
-                font-size: 0.8em;
+            .subhead {
+                font-size: 0.9em;
                 font-weight: 500;
                 color: #64737f;
                 line-height: 2em;
+                margin-bottom: 2rem;
             }
 
             .marketing-button {
@@ -59,6 +60,7 @@
                 outline: none;
                 border: 0 solid transparent;
                 border-radius: 5px;
+                text-decoration: none;
                 cursor: pointer;
             }
 
@@ -81,8 +83,7 @@
             </h3>
 
             <p class="subhead">
-                Your browser requires Shopify apps to ask you for cookie access before the app can open.<br>
-                Would you like to continue?
+                Your browser requires Shopify apps to ask you for cookie access before the app can open. Would you like to continue?
             </p>
 
             <a href="{{ route('session.itp', ['accept' => true ]) }}" class="marketing-button">Continue</a>

@@ -24,7 +24,7 @@ Route::group(['prefix' => config('shopify-app.prefix'), 'middleware' => ['web']]
         '/',
         'OhMyBrew\ShopifyApp\Controllers\HomeController@index'
     )
-    ->middleware(['auth.shop', 'billable'])
+    ->middleware(['auth.itp', 'auth.shop', 'billable'])
     ->name('home');
 
     /*
