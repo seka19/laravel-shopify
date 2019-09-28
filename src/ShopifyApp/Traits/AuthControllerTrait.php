@@ -3,6 +3,7 @@
 namespace OhMyBrew\ShopifyApp\Traits;
 
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Support\Facades\Session;
@@ -82,13 +83,17 @@ trait AuthControllerTrait
     /**
      * Handle ITP.
      *
-     * @return \Illuminate\View\View
+     * @return \Illuminate\View\View|\Illuminate\Http\RedirectResponse
      */
     public function itp()
     {
         if (Request::query('accept')) {
+            // User has accepted cookies
+            Cookie::queue(Config::get('shopify-app.app_itp_cookie'), true);
+            return Redirect::route('home');
         }
 
+        // Show the acceptance screen
         return View::make('shopify-app::auth.itp');
     }
 

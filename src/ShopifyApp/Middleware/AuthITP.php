@@ -5,6 +5,7 @@ namespace OhMyBrew\ShopifyApp\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Cookie;
 
 /**
@@ -23,7 +24,7 @@ class AuthITP
     public function handle(Request $request, Closure $next)
     {
         // Check if we have our test cookie
-        if (!Cookie::has('laravel_shopify_itp')) {
+        if (!Cookie::has(Config::get('shopify-app.app_itp_cookie'))) {
             // Cookie not there, redirect...
             return Redirect::route('session.itp');
         }

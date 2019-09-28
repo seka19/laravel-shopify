@@ -75,6 +75,17 @@ return [
     // Leaving empty will use the latest verison - not recommended in production.
     'appbridge_version' => (bool) env('SHOPIFY_APPBRIDGE_VERSION', '1'),
 
+   /*
+    |--------------------------------------------------------------------------
+    | ITP Cookie Name
+    |--------------------------------------------------------------------------
+    |
+    | This option for setting the ITP cookie key for browsers like Safati.
+    |
+    */
+
+    'app_itp_cookie' => env('SHOPIFY_APP_ITP_COOKIE', 'laravel_itp_check'),
+
     /*
     |--------------------------------------------------------------------------
     | Shopify App Name

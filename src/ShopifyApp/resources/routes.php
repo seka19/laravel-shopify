@@ -86,7 +86,7 @@ Route::group(['prefix' => config('shopify-app.prefix'), 'middleware' => ['web']]
         '/billing/{plan?}',
         'OhMyBrew\ShopifyApp\Controllers\BillingController@index'
     )
-    ->middleware(['auth.shop'])
+    ->middleware(['auth.itp', 'auth.shop'])
     ->where('plan', '^([0-9]+|)$')
     ->name('billing');
 
@@ -103,7 +103,7 @@ Route::group(['prefix' => config('shopify-app.prefix'), 'middleware' => ['web']]
         '/billing/process/{plan?}',
         'OhMyBrew\ShopifyApp\Controllers\BillingController@process'
     )
-    ->middleware(['auth.shop'])
+    ->middleware(['auth.itp', 'auth.shop'])
     ->where('plan', '^([0-9]+|)$')
     ->name('billing.process');
 
