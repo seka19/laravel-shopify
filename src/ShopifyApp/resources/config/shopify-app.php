@@ -33,7 +33,6 @@ return [
     | Meaning, one shop can be part of many apps on the same database.
     |
     */
-
     'namespace' => env('SHOPIFY_APP_NAMESPACE', null),
 
     /*
@@ -57,7 +56,6 @@ return [
     | Useful for multiple apps using the same database instance.
     |
     */
-
     'prefix' => env('SHOPIFY_APP_PREFIX', ''),
 
     /*
@@ -68,7 +66,6 @@ return [
     | This option is for overriding the shop model with your own.
     |
     */
-
     'shop_model' => env('SHOPIFY_SHOP_MODEL', '\OhMyBrew\ShopifyApp\Models\Shop'),
 
     /*
@@ -80,12 +77,20 @@ return [
     | mode and host the app inside your own container.
     |
     */
-
     'appbridge_enabled' => (bool) env('SHOPIFY_APPBRIDGE_ENABLED', true),
 
-    // Use semver range to link to a major or minor version number.
-    // Leaving empty will use the latest verison - not recommended in production.
+    /**
+     * Use semver range to link to a major or minor version number.
+     * Leaving empty will use the latest verison - not recommended in production.
+     */
     'appbridge_version' => env('SHOPIFY_APPBRIDGE_VERSION', '1'),
+
+    /**
+     * Use only for test mode!
+     * Disable redirects to Shopify to get token, confirm scopes etc.
+     * and suppose any logged in shop is authorized
+     */
+    'skip_auth_redirect' => (bool)env('SHOPIFY_SKIP_AUTH_REDIRECT', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -95,7 +100,6 @@ return [
     | This option simply lets you display your app's name.
     |
     */
-
     'app_name' => env('SHOPIFY_APP_NAME', 'Shopify App'),
 
     /*
@@ -108,7 +112,6 @@ return [
     | on API versioning for the current stable version.
     |
     */
-
     'api_version' => env('SHOPIFY_API_VERSION', null),
 
     /*
@@ -119,7 +122,6 @@ return [
     | This option is for the app's API key.
     |
     */
-
     'api_key' => env('SHOPIFY_API_KEY', ''),
 
     /*
@@ -130,7 +132,6 @@ return [
     | This option is for the app's API secret.
     |
     */
-
     'api_secret' => env('SHOPIFY_API_SECRET', ''),
 
     /*
@@ -141,7 +142,6 @@ return [
     | This option is for the scopes your application needs in the API.
     |
     */
-
     'api_scopes' => env('SHOPIFY_API_SCOPES', 'read_products,write_products'),
 
     /*
@@ -154,7 +154,6 @@ return [
     | Note: Install will always be in offline mode.
     |
     */
-
     'api_grant_mode' => env('SHOPIFY_API_GRANT_MODE', 'offline'),
 
     /*
@@ -165,7 +164,6 @@ return [
     | This option is for the redirect after authentication.
     |
     */
-
     'api_redirect' => env('SHOPIFY_API_REDIRECT', '/authenticate'),
 
     /*
@@ -178,7 +176,6 @@ return [
     | testing and does not need to be changed unless required.
     |
     */
-
     'api_class' => env('SHOPIFY_API_CLASS', \OhMyBrew\BasicShopifyAPI::class),
 
     /*
@@ -191,7 +188,6 @@ return [
     | Default is off.
     |
     */
-
     'api_rate_limiting_enabled' => env('SHOPIFY_API_RATE_LIMITING_ENABLED', false),
 
     /*
@@ -205,7 +201,6 @@ return [
     | Example: 0.5 * 1000
     |
     */
-
     'api_rate_limit_cycle' => env('SHOPIFY_API_RATE_LIMIT_CYCLE', null),
 
     /*
@@ -220,7 +215,6 @@ return [
     | Example: 0.1 * 1000
     |
     */
-
     'api_rate_limit_cycle_buffer' => env('SHOPIFY_API_RATE_LIMIT_CYCLE_BUFFER', null),
 
     /*
@@ -232,7 +226,6 @@ return [
     | it may.
     |
     */
-
     'myshopify_domain' => env('SHOPIFY_MYSHOPIFY_DOMAIN', 'myshopify.com'),
 
     /*
@@ -243,7 +236,6 @@ return [
     | Enable billing component to the package.
     |
     */
-
     'billing_enabled' => (bool) env('SHOPIFY_BILLING_ENABLED', false),
 
     /*
@@ -255,7 +247,6 @@ return [
     | Shop will get a `freemium` flag on their record in the table.
     |
     */
-
     'billing_freemium_enabled' => (bool) env('SHOPIFY_BILLING_FREEMIUM_ENABLED', false),
 
     /*
@@ -267,7 +258,6 @@ return [
     | a customer accepts or declines the charge presented.
     |
     */
-
     'billing_redirect' => env('SHOPIFY_BILLING_REDIRECT', '/billing/process'),
 
     /*
@@ -295,7 +285,6 @@ return [
     | Value is for the endpoint to call
     |
     */
-
     'webhooks' => [
         /*
             [
@@ -314,7 +303,6 @@ return [
     | This option is for defining scripttags.
     |
     */
-
     'scripttags' => [
         /*
             [
@@ -336,7 +324,6 @@ return [
     | authenticates, not just once.
     |
     */
-
     'after_authenticate_job' => [
         /*
             [
@@ -355,7 +342,6 @@ return [
     | and after_authenticate_job.
     |
     */
-
     'job_queues' => [
         'billing'            => env('BILLING_JOB_QUEUE', null),
         'webhooks'           => env('WEBHOOKS_JOB_QUEUE', null),

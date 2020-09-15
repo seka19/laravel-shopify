@@ -46,7 +46,9 @@ trait AuthControllerTrait
         // Start the process
         $auth = new AuthShopHandler($shop);
 
-        if (!$request->filled('code')) {
+        $skipRedirect = Config::get('shopify-app.skip_auth_redirect');
+
+        if (!$skipRedirect && !$request->filled('code')) {
             // Handle a request without a code, do a fullpage redirect
             // Check if they have offline access, if they do not, this is most likely an install
             // If they do, fallback to using configured grant mode
@@ -63,10 +65,12 @@ trait AuthControllerTrait
         }
 
         // We have a good code, get the access details
-        $access = $auth->getAccess($validated['code']);
         $session = new ShopSession($shop);
         $session->setDomain($shopDomain);
-        $session->setAccess($access);
+        if (!$skipRedirect) {
+            $access = $auth->getAccess($validated['code']);
+            $session->setAccess($access);
+        }
 
         // Do post processing and dispatch the jobs
         $auth->postProcess();
