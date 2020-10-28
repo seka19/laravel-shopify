@@ -238,6 +238,12 @@ return [
     */
     'billing_enabled' => (bool) env('SHOPIFY_BILLING_ENABLED', false),
 
+    /**
+     * Setup custom start-up plans for certain shops
+     * [shop_id => plan_id]
+     */
+    'billing_plans' => [],
+
     /*
     |--------------------------------------------------------------------------
     | Enable Freemium Mode
