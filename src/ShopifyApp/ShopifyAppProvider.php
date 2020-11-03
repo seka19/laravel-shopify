@@ -68,8 +68,12 @@ class ShopifyAppProvider extends ServiceProvider
         $router->aliasMiddleware('billable.ajax', Middleware\BillableAjax::class);
 
         $router->aliasMiddleware('auth.shop', Middleware\AuthShop::class);
-        $router->aliasMiddleware('auth.shop.ajax', Middleware\AuthShopAjax::class);
-        $router->aliasMiddleware('auth.jwt.ajax', Middleware\AuthJwtAjax::class);
+
+        if (Config::get('shopify-app.auth_jwt')) {
+            $router->aliasMiddleware('auth.shop.ajax', Middleware\AuthJwtAjax::class);
+        } else {
+            $router->aliasMiddleware('auth.shop.ajax', Middleware\AuthShopAjax::class);
+        }
     }
 
     /**
