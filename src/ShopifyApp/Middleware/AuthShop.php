@@ -13,6 +13,7 @@ use OhMyBrew\ShopifyApp\Exceptions\MissingShopDomainException;
 use OhMyBrew\ShopifyApp\Exceptions\SignatureVerificationException;
 use OhMyBrew\ShopifyApp\Facades\ShopifyApp;
 use OhMyBrew\ShopifyApp\Services\ShopSession;
+use OhMyBrew\ShopifyApp\Services\JwtService;
 
 /**
  * Response for ensuring an authenticated shop.
@@ -20,15 +21,29 @@ use OhMyBrew\ShopifyApp\Services\ShopSession;
 class AuthShop
 {
     /**
+     * @var bool
+     */
+    protected $validateSession = true;
+
+    /**
      * Handle an incoming request.
      *
      * @param \Illuminate\Http\Request $request The request object.
-     * @param \Closure                 $next    The "next" action to take.
+     * @param \Closure $next The "next" action to take.
      *
      * @return mixed
      */
     public function handle(Request $request, Closure $next)
     {
+        if (Config::get('shopify-app.auth_jwt')) {
+            if (!Config::get('shopify-app.appbridge_enabled')) {
+                throw new \RuntimeException('To use JWT-based authentication you have to set config "shopify-app.appbridge_enabled" to "true"');
+            }
+            if (Config::get('shopify-app.skip_auth_redirect')) {
+                throw new \RuntimeException('To use JWT-based authentication you have to set config "shopify-app.skip_auth_redirect" to "false"');
+            }
+        }
+
         $validation = $this->validateShop($request);
         if ($validation !== true) {
             return $validation;
@@ -60,7 +75,7 @@ class AuthShop
         $session->setShop($shop);
 
         // We need to do a full flow if no shop or it is deleted
-        if ($shop === null || $shop->trashed() || !$session->isValid()) {
+        if ($shop === null || $shop->trashed() || ($this->validateSession && !$session->isValid())) {
             // We have a bad session
             return $this->handleBadSession(
                 $session,
@@ -95,15 +110,20 @@ class AuthShop
      *  - Headers
      *  - Session
      *
-     * @param \Illuminate\Http\Request                  $request The request object.
+     * @param \Illuminate\Http\Request $request The request object.
      * @param \OhMyBrew\ShopifyApp\Services\ShopSession $session The shop session instance.
      *
+     * @return bool|string
      * @throws Exception
      *
-     * @return bool|string
      */
     private function getShopDomain(Request $request, ShopSession $session)
     {
+        $shopDomainJwt = $this->getJwtDomain($request);
+        if ($shopDomainJwt) {
+            return ShopifyApp::sanitizeShopDomain($shopDomainJwt);
+        }
+
         // Query variable is highest priority
         $shopDomainParam = $this->getQueryDomain($request);
         if ($shopDomainParam) {
@@ -145,9 +165,9 @@ class AuthShop
      *
      * @param \Illuminate\Http\Request $request The request object.
      *
+     * @return bool|string
      * @throws Exception
      *
-     * @return bool|string
      */
     private function getQueryDomain(Request $request)
     {
@@ -160,7 +180,7 @@ class AuthShop
         // Verify
         $verify = [];
         foreach ($request->all() as $key => $value) {
-            $verify[$key] = is_array($value) ? '["'.implode('", "', $value).'"]' : $value;
+            $verify[$key] = is_array($value) ? '["' . implode('", "', $value) . '"]' : $value;
         }
 
         // Make sure there is no param spoofing attempt
@@ -205,7 +225,7 @@ class AuthShop
         // Verify
         $verify = [];
         foreach ($refererQueryParams as $key => $value) {
-            $verify[$key] = is_array($value) ? '["'.implode('", "', $value).'"]' : $value;
+            $verify[$key] = is_array($value) ? '["' . implode('", "', $value) . '"]' : $value;
         }
 
         // Make sure there is no param spoofing attempt
@@ -225,9 +245,9 @@ class AuthShop
      *
      * @param \Illuminate\Http\Request $request The request object.
      *
+     * @return bool|string
      * @throws Exception
      *
-     * @return bool|string
      */
     private function getHeaderDomain(Request $request)
     {
@@ -256,7 +276,7 @@ class AuthShop
 
         foreach (compact('code', 'locale', 'state', 'id', 'ids') as $key => $value) {
             if ($value) {
-                $verify[$key] = is_array($value) ? '["'.implode('", "', $value).'"]' : $value;
+                $verify[$key] = is_array($value) ? '["' . implode('", "', $value) . '"]' : $value;
             }
         }
 
@@ -269,11 +289,27 @@ class AuthShop
     }
 
     /**
+     * @param Request $request
+     * @return string|null
+     * @throws MissingShopDomainException
+     * @throws SignatureVerificationException
+     * @throws \OhMyBrew\ShopifyApp\Exceptions\HttpException
+     */
+    private function getJwtDomain(Request $request)
+    {
+        if (Config::get('shopify-app.auth_jwt')) {
+            return (new JwtService($request))->getDomain();
+        }
+
+        return null;
+    }
+
+    /**
      * Handles a bad shop session.
      *
-     * @param \OhMyBrew\ShopifyApp\Services\ShopSession $session    The shop session instance.
-     * @param \Illuminate\Http\Request                  $request    The request object.
-     * @param string|null                               $shopDomain The incoming shop domain.
+     * @param \OhMyBrew\ShopifyApp\Services\ShopSession $session The shop session instance.
+     * @param \Illuminate\Http\Request $request The request object.
+     * @param string|null $shopDomain The incoming shop domain.
      *
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -291,10 +327,7 @@ class AuthShop
         // Depending on the type of grant mode, we need to do a full auth or partial
         return Redirect::route(
             'authenticate',
-            array_merge(
-                $request->all(),
-                ['shop' => $shopDomain]
-            )
+            convert_redirect_params($request, ['shop' => $shopDomain])
         );
     }
 }

@@ -11,8 +11,7 @@ use OhMyBrew\ShopifyApp\Models\Charge;
 use OhMyBrew\ShopifyApp\Models\Plan;
 use OhMyBrew\ShopifyApp\Models\Shop;
 use OhMyBrew\ShopifyApp\Requests\StoreUsageCharge;
-use OhMyBrew\ShopifyApp\Services\BillingPlan;
-use OhMyBrew\ShopifyApp\Services\UsageCharge;
+use OhMyBrew\ShopifyApp\Services;
 
 /**
  * Responsible for billing a shop for plans and usage charges.
@@ -41,7 +40,7 @@ trait BillingControllerTrait
         }
 
         // Get the confirmation URL
-        $bp = new BillingPlan($shop, $plan);
+        $bp = new Services\BillingPlan($shop, $plan);
         $url = $bp->confirmationUrl();
 
         // Do a fullpage redirect
@@ -59,16 +58,25 @@ trait BillingControllerTrait
     {
         // Activate the plan and save
         $shop = ShopifyApp::shop();
-        $bp = new BillingPlan($shop, $plan);
+        $bp = new Services\BillingPlan($shop, $plan);
         $bp->setChargeId(Request::query('charge_id'));
         $bp->activate();
         $save = $bp->save();
 
-        // Go to homepage of app
-        return Redirect::route('home')->with(
-            $save ? 'success' : 'failure',
-            'billing'
-        );
+        if (Config::get('shopify-app.auth_jwt')) {
+            return View::make(
+                'shopify-app::billing.result_redirect',
+                [
+                    'shopDomain' => $shop->shopify_domain,
+                    'apiKey'     => Config::get('shopify-app.api_key')
+                ]
+            );
+        } else {
+            return Redirect::route('home')->with(
+                $save ? 'success' : 'failure',
+                'billing'
+            );
+        }
     }
 
     /**
@@ -82,7 +90,7 @@ trait BillingControllerTrait
     {
         // Activate and save the usage charge
         $validated = $request->validated();
-        $uc = new UsageCharge(ShopifyApp::shop(), $validated);
+        $uc = new Services\UsageCharge(ShopifyApp::shop(), $validated);
         $uc->activate();
         $uc->save();
 

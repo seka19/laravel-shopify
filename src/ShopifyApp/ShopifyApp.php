@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 use OhMyBrew\ShopifyApp\Models\Shop;
 use OhMyBrew\ShopifyApp\Services\ShopSession;
+use OhMyBrew\ShopifyApp\Services\JwtService;
 
 /**
  * The base "helper" class for this package.
@@ -42,13 +43,25 @@ class ShopifyApp
     /**
      * Gets/sets the current shop.
      *
-     * @param string|null $shopDomain
+     * @param string $shopDomain
      *
      * @return \OhMyBrew\ShopifyApp\Models\Shop
      */
     public function shop(string $shopDomain = null)
     {
-        $shopifyDomain = $shopDomain ? $this->sanitizeShopDomain($shopDomain) : (new ShopSession())->getDomain();
+        if ($shopDomain) {
+            $shopifyDomain = $this->sanitizeShopDomain($shopDomain);
+
+        } elseif (Config::get('shopify-app.auth_jwt')) {
+            $shopifyDomain = (new JwtService(request()))->getDomain();
+            if (!$shopifyDomain) {
+                throw new Exceptions\MissingShopDomainException('Unable to get shop domain.');
+            }
+
+        } else {
+            $shopifyDomain = (new ShopSession())->getDomain();
+        }
+
         if (!$this->shop && $shopifyDomain) {
             // Grab shop from database here
             $shopModel = Config::get('shopify-app.shop_model');
@@ -137,7 +150,7 @@ class ShopifyApp
             ksort($data);
             $queryCompiled = [];
             foreach ($data as $key => $value) {
-                $queryCompiled[] = "{$key}=".(is_array($value) ? implode(',', $value) : $value);
+                $queryCompiled[] = "{$key}=" . (is_array($value) ? implode(',', $value) : $value);
             }
             $data = implode(($buildQueryWithJoin ? '&' : ''), $queryCompiled);
         }
