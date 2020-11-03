@@ -137,8 +137,9 @@ class JwtService
         }
 
         $now = time();
+        $lag = 30;
 
-        if (($now > $data->exp) || ($now < $data->nbf) || ($now < $data->iat)) {
+        if (($now > $data->exp + $lag) || ($now < $data->nbf - $lag) || ($now < $data->iat - $lag)) {
             throw new Exceptions\HttpException('Expired token', 403);
         }
 
