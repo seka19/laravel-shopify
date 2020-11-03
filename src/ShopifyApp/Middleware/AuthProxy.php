@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use OhMyBrew\ShopifyApp\Facades\ShopifyApp;
+use OhMyBrew\ShopifyApp\Services\JwtService;
 
 /**
  * Responsible for ensuring a proper app proxy request.
@@ -17,7 +18,7 @@ class AuthProxy
      * Handle an incoming request to ensure it is valid.
      *
      * @param \Illuminate\Http\Request $request
-     * @param \Closure                 $next
+     * @param \Closure $next
      *
      * @return mixed
      */
@@ -35,8 +36,12 @@ class AuthProxy
             return Response::make('Invalid proxy signature.', 401);
         }
 
-        // Save shop domain to session
-        Session::put('shopify_domain', ShopifyApp::sanitizeShopDomain($request->get('shop')));
+        if (Config::get('shopify-app.auth_jwt')) {
+            (new JwtService($request))->setDomain($request->get('shop'));
+        } else {
+            // Save shop domain to session
+            Session::put('shopify_domain', ShopifyApp::sanitizeShopDomain($request->get('shop')));
+        }
 
         // All good, process proxy request
         return $next($request);

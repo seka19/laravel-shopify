@@ -33,12 +33,25 @@ class JwtService
     private $domainFromToken = '';
 
     /**
+     * @var string
+     */
+    static private $domain = '';
+
+    /**
      * JwtService constructor.
      * @param Request $request
      */
     public function __construct(Request $request)
     {
         $this->request = $request;
+    }
+
+    /**
+     * @param string $domain
+     */
+    public function setDomain($domain)
+    {
+        self::$domain = $domain;
     }
 
     /**
@@ -49,6 +62,10 @@ class JwtService
      */
     public function getDomain(): ?string
     {
+        if (self::$domain) {
+            return self::$domain;
+        }
+
         if ($this->isTokenSet() && $this->isTokenValid()) {
             $domain = $this->getDomainFromToken();
             if (!$domain) {
