@@ -129,16 +129,24 @@ class BillingPlan
      */
     public function chargeParams()
     {
+        $returnUrl = Config::get('shopify-app.billing_redirect');
+
+        if (Config::get('shopify-app.auth_jwt')) {
+            $returnUrl .= '?' . http_build_query((new JwtService(request()))->billingRoutesParams());
+        }
+
+        $returnUrl = URL::secure(
+            $returnUrl,
+            ['plan_id' => $this->plan->id]
+        );
+
         // Build the charge array
         $chargeDetails = [
             'name'       => $this->plan->name,
             'price'      => $this->plan->price,
             'test'       => $this->plan->isTest(),
             'trial_days' => $this->determineTrialDays(),
-            'return_url' => URL::secure(
-                Config::get('shopify-app.billing_redirect'),
-                ['plan_id' => $this->plan->id]
-            ),
+            'return_url' => $returnUrl,
         ];
 
         // Handle capped amounts for UsageCharge API

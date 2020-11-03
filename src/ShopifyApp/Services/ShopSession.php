@@ -233,12 +233,23 @@ class ShopSession
      */
     public function isValid()
     {
-        // No token set or domain in session?
-        $result = !empty($this->getToken(true))
-            && $this->getDomain() !== null
-            && $this->getDomain() == $this->shop->shopify_domain;
+        if (empty($this->getToken(true))) {
+            return false;
+        }
 
-        return $result;
+        if (Config::get('shopify-app.auth_jwt')) {
+            // Check token validity
+            $response = $this->shop->api()->request(
+                'GET',
+                '/admin/api/shop.json',
+                ['fields' => 'domain']
+            )->body;
+
+            return $response instanceof \stdClass && $response->shop->domain === $this->shop->shopify_domain;
+
+        } else {
+            return $this->getDomain() !== null && $this->getDomain() === $this->shop->shopify_domain;
+        }
     }
 
     /**
@@ -335,7 +346,7 @@ class ShopSession
         return [
             'major' => $pieces[0] ?? 0,
             'minor' => $pieces[1] ?? 0,
-            'float' => (float) sprintf('%s.%s', $pieces[0] ?? 0, $pieces[1] ?? 0),
+            'float' => (float)sprintf('%s.%s', $pieces[0] ?? 0, $pieces[1] ?? 0),
         ];
     }
 
@@ -352,7 +363,7 @@ class ShopSession
         return [
             'major' => $pieces[0] ?? 0,
             'minor' => $pieces[1] ?? 0,
-            'float' => (float) sprintf('%s.%s', $pieces[0] ?? 0, $pieces[1] ?? 0),
+            'float' => (float)sprintf('%s.%s', $pieces[0] ?? 0, $pieces[1] ?? 0),
         ];
     }
 }

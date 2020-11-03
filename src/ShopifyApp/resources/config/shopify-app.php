@@ -11,6 +11,12 @@ return [
     */
     'debug' => (bool) env('SHOPIFY_DEBUG', false),
 
+    /**
+     * Use authentication with JWT-token received from Shopify instead of Cookies
+     * You have to remove StartSession middleware from /app/http/Kernel.php
+     */
+    'auth_jwt' => (bool) env('SHOPIFY_AUTH_JWT', false),
+
     /*
     |--------------------------------------------------------------------------
     | Manual migrations

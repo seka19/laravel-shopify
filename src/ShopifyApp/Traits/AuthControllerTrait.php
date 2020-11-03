@@ -80,25 +80,36 @@ trait AuthControllerTrait
         $auth->dispatchEvent();
 
         // Go to homepage of app or the return_to
-        return $this->returnTo();
+        return $this->returnTo($request);
     }
 
     /**
      * Determines where to redirect after successfull auth.
      *
-     * @return string
+     * @param \OhMyBrew\ShopifyApp\Requests\AuthShop $request The incoming request.
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
-    protected function returnTo()
+    protected function returnTo(AuthShop $request)
     {
         // Set in AuthShop middleware
         $return_to = Session::get('return_to');
         if ($return_to) {
             Session::forget('return_to');
 
+            if (Config::get('shopify-app.auth_jwt')) {
+                $return_to .= strpos($return_to, '?') === false ? '?' : '&';
+                $return_to .= http_build_query(convert_redirect_params($request));
+            }
+
             return Redirect::to($return_to);
         }
 
         // No return_to, go to home route
-        return Redirect::route('home');
+        if (Config::get('shopify-app.auth_jwt')) {
+            return Redirect::route('home', convert_redirect_params($request));
+        } else {
+            return Redirect::route('home');
+        }
     }
 }
