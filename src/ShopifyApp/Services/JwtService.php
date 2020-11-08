@@ -111,12 +111,11 @@ class JwtService
             throw new Exceptions\HttpException('Malformed token', 400);
         }
 
-        $now = time();
+        /*$now = time();
         $lag = 30;
-
         if (($now > $data->exp + $lag) || ($now < $data->nbf - $lag) || ($now < $data->iat - $lag)) {
             throw new Exceptions\HttpException('Expired token', 403);
-        }
+        }*/
 
         if (!stristr($data->iss, $data->dest)) {
             throw new Exceptions\HttpException('Invalid token', 400);
