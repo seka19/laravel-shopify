@@ -14,9 +14,6 @@ use OhMyBrew\ShopifyApp\Facades\ShopifyApp;
  */
 class JwtService
 {
-    public const TOKEN_HEADER = 'x-shopify-jwt';
-    public const BILLING_DOMAIN_SALT = 'kuygdhsafg76hadusf';
-
     /**
      * @var Request
      */
@@ -33,11 +30,6 @@ class JwtService
     private $domainFromToken = '';
 
     /**
-     * @var string
-     */
-    static private $domain = '';
-
-    /**
      * JwtService constructor.
      * @param Request $request
      */
@@ -47,25 +39,12 @@ class JwtService
     }
 
     /**
-     * @param string $domain
-     */
-    public function setDomain($domain)
-    {
-        self::$domain = $domain;
-    }
-
-    /**
      * @return string|null
      * @throws Exceptions\HttpException
      * @throws Exceptions\MissingShopDomainException
-     * @throws Exceptions\SignatureVerificationException
      */
     public function getDomain(): ?string
     {
-        if (self::$domain) {
-            return self::$domain;
-        }
-
         if ($this->isTokenSet() && $this->isTokenValid()) {
             $domain = $this->getDomainFromToken();
             if (!$domain) {
@@ -75,28 +54,7 @@ class JwtService
             return $domain;
         }
 
-        $domain = $this->getDomainFromQuery();
-
-        return $domain ?: null;
-    }
-
-    /**
-     * @return array
-     * @throws Exceptions\HttpException
-     * @throws Exceptions\MissingShopDomainException
-     * @throws Exceptions\SignatureVerificationException
-     */
-    public function billingRoutesParams()
-    {
-        $domain = $this->getDomain();
-        if (!$domain) {
-            throw new Exceptions\MissingShopDomainException('Unable to get shop domain.');
-        }
-
-        return [
-            'shop' => $domain,
-            'hash' => md5($domain . self::BILLING_DOMAIN_SALT)
-        ];
+        return null;
     }
 
     /**
@@ -104,7 +62,7 @@ class JwtService
      */
     private function getToken(): ?string
     {
-        return $this->request->header(self::TOKEN_HEADER);
+        return $this->request->bearerToken();
     }
 
     /**
@@ -200,38 +158,6 @@ class JwtService
         $this->domainFromToken = ShopifyApp::sanitizeShopDomain($shop);
 
         return $this->domainFromToken;
-    }
-
-    /**
-     * @return string
-     * @throws Exceptions\SignatureVerificationException
-     */
-    private function getDomainFromQuery(): string
-    {
-        // Extract the referer
-        $domain = $this->request->input('shop');
-        if (!$domain) {
-            return '';
-        }
-
-        // Check if it's a request to billing controllers
-        $hash = $this->request->input('hash');
-        if ($hash === md5($domain . self::BILLING_DOMAIN_SALT)) {
-            return ShopifyApp::sanitizeShopDomain($domain);
-        }
-
-        // Verify
-        $verify = [];
-        foreach ($this->request->all() as $key => $value) {
-            $verify[$key] = is_array($value) ? '["' . implode('", "', $value) . '"]' : $value;
-        }
-
-        // Make sure there is no param spoofing attempt
-        if (ShopifyApp::api()->verifyRequest($verify)) {
-            return ShopifyApp::sanitizeShopDomain($domain);
-        }
-
-        throw new Exceptions\SignatureVerificationException('Unable to verify signature.');
     }
 
     /**

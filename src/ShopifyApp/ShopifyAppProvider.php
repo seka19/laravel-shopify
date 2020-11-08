@@ -74,6 +74,8 @@ class ShopifyAppProvider extends ServiceProvider
         } else {
             $router->aliasMiddleware('auth.shop.ajax', Middleware\AuthShopAjax::class);
         }
+
+        $router->aliasMiddleware('billing.page', Middleware\BillingPage::class);
     }
 
     /**

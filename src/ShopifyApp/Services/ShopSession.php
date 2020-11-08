@@ -56,6 +56,11 @@ class ShopSession
     protected $shop;
 
     /**
+     * @var string|null
+     */
+    private static $domain = null;
+
+    /**
      * Constructor for shop session class.
      *
      * @param object|null $shop The shop.
@@ -121,6 +126,8 @@ class ShopSession
     {
         $this->fixLifetime();
         Session::put(self::DOMAIN, $shopDomain);
+        
+        self::$domain = $shopDomain;
 
         return $this;
     }
@@ -132,7 +139,7 @@ class ShopSession
      */
     public function getDomain()
     {
-        return Session::get(self::DOMAIN);
+        return Session::get(self::DOMAIN) ?? self::$domain;
     }
 
     /**

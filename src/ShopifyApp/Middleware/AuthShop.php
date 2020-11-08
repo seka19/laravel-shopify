@@ -84,6 +84,10 @@ class AuthShop
             );
         }
 
+        if (Config::get('shopify-app.auth_jwt')) {
+            $session->setDomain($shopDomain);
+        }
+
         // Everything is fine!
         return true;
     }
@@ -119,11 +123,6 @@ class AuthShop
      */
     private function getShopDomain(Request $request, ShopSession $session)
     {
-        $shopDomainJwt = $this->getJwtDomain($request);
-        if ($shopDomainJwt) {
-            return ShopifyApp::sanitizeShopDomain($shopDomainJwt);
-        }
-
         // Query variable is highest priority
         $shopDomainParam = $this->getQueryDomain($request);
         if ($shopDomainParam) {
@@ -150,6 +149,12 @@ class AuthShop
         $shopDomainSession = $session->getDomain();
         if ($shopDomainSession) {
             return ShopifyApp::sanitizeShopDomain($shopDomainSession);
+        }
+
+        // If we use JWT-auth, session may not contain shop, so we check JWT-token
+        $shopDomainJwt = $this->getJwtDomain($request);
+        if ($shopDomainJwt) {
+            return ShopifyApp::sanitizeShopDomain($shopDomainJwt);
         }
 
         // No domain :(
