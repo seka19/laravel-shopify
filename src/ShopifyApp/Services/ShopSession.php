@@ -249,10 +249,10 @@ class ShopSession
             $response = $this->shop->api()->request(
                 'GET',
                 '/admin/api/shop.json',
-                ['fields' => 'domain']
+                ['fields' => 'myshopify_domain']
             )->body;
 
-            return $response instanceof \stdClass && $response->shop->domain === $this->shop->shopify_domain;
+            return $response instanceof \stdClass && $response->shop->myshopify_domain === $this->shop->shopify_domain;
 
         } else {
             return $this->getDomain() !== null && $this->getDomain() === $this->shop->shopify_domain;
