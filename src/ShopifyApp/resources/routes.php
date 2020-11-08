@@ -71,7 +71,7 @@ Route::group(['prefix' => config('shopify-app.prefix'), 'middleware' => ['web']]
         '/billing/{plan?}',
         'OhMyBrew\ShopifyApp\Controllers\BillingController@index'
     )
-        ->middleware(['auth.shop'])
+        ->middleware(['billing.page'])
         ->where('plan', '^([0-9]+|)$')
         ->name('billing');
 
@@ -88,7 +88,7 @@ Route::group(['prefix' => config('shopify-app.prefix'), 'middleware' => ['web']]
         '/billing/process/{plan?}',
         'OhMyBrew\ShopifyApp\Controllers\BillingController@process'
     )
-        ->middleware(['auth.shop'])
+        ->middleware(['billing.page'])
         ->where('plan', '^([0-9]+|)$')
         ->name('billing.process');
 
@@ -106,7 +106,7 @@ Route::group(['prefix' => config('shopify-app.prefix'), 'middleware' => ['web']]
         '/billing/usage-charge',
         'OhMyBrew\ShopifyApp\Controllers\BillingController@usageCharge'
     )
-        ->middleware(['auth.shop'])
+        ->middleware(['billing.page'])
         ->name('billing.usage_charge');
 });
 

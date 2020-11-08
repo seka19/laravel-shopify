@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Config;
 use OhMyBrew\ShopifyApp\Facades\ShopifyApp;
-use OhMyBrew\ShopifyApp\Services\JwtService;
+use OhMyBrew\ShopifyApp\Services\ShopSession;
 
 /**
  * Responsible for ensuring a proper app proxy request.
@@ -37,14 +37,33 @@ class AuthProxy
             return Response::make('Invalid proxy signature.', 401);
         }
 
-        if (Config::get('shopify-app.auth_jwt')) {
-            (new JwtService($request))->setDomain($request->get('shop'));
-        } else {
-            // Save shop domain to session
-            Session::put('shopify_domain', ShopifyApp::sanitizeShopDomain($request->get('shop')));
+        if (!$this->validateShop($request->get('shop'))) {
+            return Response::make('Failed to authorize shop.', 401);
         }
 
         // All good, process proxy request
         return $next($request);
+    }
+
+    /**
+     * @param string $domain
+     * @return bool
+     */
+    protected function validateShop(string $domain): bool
+    {
+        $shopModel = Config::get('shopify-app.shop_model');
+        $shop = $shopModel::withTrashed()
+            ->where(['shopify_domain' => $domain])
+            ->first();
+
+        if ($shop === null || $shop->trashed()) {
+            return false;
+        }
+
+        $session = new ShopSession();
+        $session->setShop($shop);
+        $session->setDomain($domain);
+
+        return true;
     }
 }

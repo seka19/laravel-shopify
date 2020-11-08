@@ -28,14 +28,13 @@ class Billable
             $shop = ShopifyApp::shop();
             if (!$shop->isFreemium() && !$shop->isGrandfathered() && !$shop->plan) {
                 // They're not grandfathered in, and there is no charge or charge was declined... redirect to billing
-                $params = [null];
-                if (Config::get('shopify-app.auth_jwt')) {
-                    $params = array_merge(
-                        $params,
-                        (new Services\JwtService($request))->billingRoutesParams()
-                    );
-                }
-                return Redirect::route('billing', $params);
+                return Redirect::route(
+                    'billing',
+                    array_merge(
+                        [null],
+                        Services\BillingPlan::billingRoutesParams()
+                    )
+                );
             }
         }
 

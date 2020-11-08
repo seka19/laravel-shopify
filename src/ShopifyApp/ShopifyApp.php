@@ -49,18 +49,7 @@ class ShopifyApp
      */
     public function shop(string $shopDomain = null)
     {
-        if ($shopDomain) {
-            $shopifyDomain = $this->sanitizeShopDomain($shopDomain);
-
-        } elseif (Config::get('shopify-app.auth_jwt')) {
-            $shopifyDomain = (new JwtService(request()))->getDomain();
-            if (!$shopifyDomain) {
-                throw new Exceptions\MissingShopDomainException('Unable to get shop domain.');
-            }
-
-        } else {
-            $shopifyDomain = (new ShopSession())->getDomain();
-        }
+        $shopifyDomain = $shopDomain ? $this->sanitizeShopDomain($shopDomain) : (new ShopSession())->getDomain();
 
         if (!$this->shop && $shopifyDomain) {
             // Grab shop from database here

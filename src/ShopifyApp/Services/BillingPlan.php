@@ -16,6 +16,8 @@ use OhMyBrew\ShopifyApp\Models\Shop;
  */
 class BillingPlan
 {
+    public const BILLING_DOMAIN_SALT = 'kuygdhsafg76hadusf';
+
     /**
      * The shop.
      *
@@ -66,6 +68,31 @@ class BillingPlan
         $this->plan = $plan;
 
         return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public static function billingRoutesParams(): array
+    {
+        $domain = (new ShopSession())->getDomain();
+        if (!$domain) {
+            throw new Exceptions\MissingShopDomainException('Unable to get shop domain.');
+        }
+
+        return [
+            'shop' => $domain,
+            'hash' => self::billingRoutesHash($domain)
+        ];
+    }
+
+    /**
+     * @param string $domain
+     * @return string
+     */
+    public static function billingRoutesHash(string $domain): string
+    {
+        return md5($domain . self::BILLING_DOMAIN_SALT);
     }
 
     /**
@@ -130,10 +157,8 @@ class BillingPlan
     public function chargeParams()
     {
         $returnUrl = Config::get('shopify-app.billing_redirect');
-
-        if (Config::get('shopify-app.auth_jwt')) {
-            $returnUrl .= '?' . http_build_query((new JwtService(request()))->billingRoutesParams());
-        }
+        $returnUrl .= strpos($returnUrl, '?') === false ? '?' : '&';
+        $returnUrl .= http_build_query(self::billingRoutesParams());
 
         $returnUrl = URL::secure(
             $returnUrl,
