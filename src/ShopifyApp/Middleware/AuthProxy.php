@@ -37,7 +37,7 @@ class AuthProxy
             return Response::make('Invalid proxy signature.', 401);
         }
 
-        if (!$this->validateShop($request->get('shop'))) {
+        if (!$this->validateShop($request)) {
             return Response::make('Failed to authorize shop.', 401);
         }
 
@@ -46,11 +46,13 @@ class AuthProxy
     }
 
     /**
-     * @param string $domain
+     * @param Request $request
      * @return bool
      */
-    protected function validateShop(string $domain): bool
+    protected function validateShop(Request $request): bool
     {
+        $domain = $request->get('shop');
+
         $shopModel = Config::get('shopify-app.shop_model');
         $shop = $shopModel::withTrashed()
             ->where(['shopify_domain' => $domain])
@@ -63,6 +65,10 @@ class AuthProxy
         $session = new ShopSession();
         $session->setShop($shop);
         $session->setDomain($domain);
+
+        $request->setUserResolver(function () use ($shop) {
+            return $shop;
+        });
 
         return true;
     }
