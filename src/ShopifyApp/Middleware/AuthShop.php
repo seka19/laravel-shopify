@@ -88,6 +88,10 @@ class AuthShop
             $session->setDomain($shopDomain);
         }
 
+        $request->setUserResolver(function () use ($shop) {
+            return $shop;
+        });
+
         // Everything is fine!
         return true;
     }
