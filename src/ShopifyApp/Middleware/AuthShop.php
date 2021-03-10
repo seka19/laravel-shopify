@@ -6,6 +6,7 @@ use Closure;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Session;
@@ -14,6 +15,7 @@ use OhMyBrew\ShopifyApp\Exceptions\SignatureVerificationException;
 use OhMyBrew\ShopifyApp\Facades\ShopifyApp;
 use OhMyBrew\ShopifyApp\Services\ShopSession;
 use OhMyBrew\ShopifyApp\Services\JwtService;
+use OhMyBrew\ShopifyApp\Models;
 
 /**
  * Response for ensuring an authenticated shop.
@@ -24,6 +26,11 @@ class AuthShop
      * @var bool
      */
     protected $validateSession = true;
+
+    /**
+     * @var bool
+     */
+    protected $validateScopes = true;
 
     /**
      * Handle an incoming request.
@@ -82,6 +89,13 @@ class AuthShop
                 $request,
                 $shopDomain
             );
+        }
+
+        if ($this->validateScopes) {
+            $redirect = $this->validateScopes($shop);
+            if ($redirect) {
+                return $redirect;
+            }
         }
 
         if (Config::get('shopify-app.auth_jwt')) {
@@ -337,6 +351,38 @@ class AuthShop
         return Redirect::route(
             'authenticate',
             convert_redirect_params($request, ['shop' => $shopDomain])
+        );
+    }
+
+    /**
+     * @param Models\Shop $shop
+     * @return RedirectResponse|null
+     * @throws Exception
+     */
+    protected function validateScopes(Models\Shop $shop): ?RedirectResponse
+    {
+        $scopes_actual = array_map(
+            function (\stdClass $row): string {
+                return $row->handle;
+            },
+            $shop->api()->rest(
+                'GET',
+                '/admin/oauth/access_scopes.json'
+            )->body->access_scopes
+        );
+
+        $scopes_required = array_map(
+            'trim',
+            explode(',', Config::get('shopify-app.api_scopes'))
+        );
+
+        if (empty(array_diff($scopes_required, $scopes_actual))) {
+            return null;
+        }
+
+        return Redirect::route(
+            'authenticate',
+            ['shop' => $shop->shopify_domain]
         );
     }
 }

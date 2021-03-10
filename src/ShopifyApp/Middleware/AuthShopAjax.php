@@ -15,6 +15,11 @@ use OhMyBrew\ShopifyApp\Exceptions\SignatureVerificationException;
 class AuthShopAjax extends AuthShop
 {
     /**
+     * @var bool
+     */
+    protected $validateScopes = false;
+
+    /**
      * @param Request $request
      * @param Closure $next
      * @return \Illuminate\Http\Response|mixed
